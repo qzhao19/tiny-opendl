@@ -182,12 +182,18 @@ def one_hot_encoder(y, label_nums=None):
     Returns:
         one hot encoded label
     """
+    if not isinstance(y, np.ndarray):
+        y = np.array(y)
+
+    if len(y.shape) != 1:
+        raise ValueError('The size of input shape must be 1!')
+
     if label_nums is not None:
         label_nums = label_nums
     else:
         label_nums = np.max(y) + 1
     
-    one_hot = np.zeros((y.shape[0], label_nums), dtype=np.int)
+    one_hot = np.zeros((y.shape[0], label_nums), dtype=y.dtype)
     one_hot[np.arange(y.shape[0]), y] = 1
     return one_hot
 
