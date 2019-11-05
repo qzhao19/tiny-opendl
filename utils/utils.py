@@ -198,6 +198,28 @@ def one_hot_encoder(y, label_nums=None):
     return one_hot
 
 
+def get_batch_data(data, batch_size=10):
+    """get dataset by one batch 
+    Args:
+        data: numpy.ndarray or list type data
+        batch_size: int, the batch_size
+    Returns:
+        one batch dataset
+    """
+    if isinstance(data, list):
+        sample_nums = len(data.shape[0])
+    else:
+        sample_nums = data.shape[0]
+    # get the number of sample 
+    sample_nums = data.shape[0]
+    for i in np.arange(0, sample_nums, batch_size):
+        # define begin and end idx
+        begin, end = i, min(i+batch_size, sample_nums)
+        if isinstance(data, list):
+            yield tuple([x[begin:end] for x in data])
+        else:
+            yield data[begin:end]
+
 
 
 
