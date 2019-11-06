@@ -261,32 +261,38 @@ def split_train_test(X, y, ratio=0.7, shuffle=True, seed=None):
 
     return (train_X, train_y), (test_X, test_y)
 
-def select_array_indice(array, dim, i):
+def select_array_indice(array, axis, i):
     """Select subarray data of some dimension according to indices given
     Args:
         array: array data
-        dim: some dimenion
+        axis: int, axis position along which array is silce
         i: indice given
     returns:
 
     """
+    if axis >= array.ndim or -axis <= -array.ndim - 1:
+        raise ValueError('neither axis < -a.ndim - 1 nor axis > a.ndim')
+
     indices = [slice(None)] * array.ndim
-    indices[dim] = i
+    indices[axis] = i
     # print(indices)
     return array[tuple(indices)]
 
-def plus_array_indice(value, array, dim, i):
-    """plus element into selected subarray data from an indices given
+
+def plus_array_indice(value, array, axis, i):
+    """plus element into slected subarray data from an indices given
     Args:
         value: elments adding to subarray
         array: array data
-        dim: certain dimension
+        axis: int, dimension along which array is silce
         i: indices given
     """
+    if axis >= array.ndim or -axis <= -array.ndim - 1:
+        raise ValueError('neither axis < -a.ndim - 1 nor axis > a.ndim')
+    
     indices = [slice(None)] * array.ndim
-    indices[dim] = i
+    indices[axis] = i
     array[tuple(indices)] += value
-
 
 
 
