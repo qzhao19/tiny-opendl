@@ -318,7 +318,12 @@ def expand_data(data, axis, repeats):
     return data.repeat(repeats).reshape(shape).transpose(data_orders)
 
 
-
+def unique_id(group='default'):
+    """Interface of class Util.unique_id
+    Args:
+        group: string
+    """
+    return Util.unique_id(group)
 
 
 
