@@ -221,6 +221,23 @@ def get_batch_data(data, batch_size=10):
             yield data[begin:end]
 
 
+def shuffle_data(X, y, seed=None):
+    """Randomly shuffle samples of X and y
+    Args:
+        X: data
+        y: label
+        seed: int, the number used to initialize pseudorandom number generator
+    Returns:
+        X, y
+    """
+    if seed:
+        np.random.seed(seed)
+    # define indice of elements
+    indices = np.arange(X.shape[0])
+    # shuffle
+    np.random.shuffle(indices)
+    return X[indices], y[indices]
+
 
 
 
