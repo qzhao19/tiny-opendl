@@ -240,6 +240,56 @@ def shuffle_data(X, y, seed=None):
 
 
 
+def split_train_test(X, y, ratio=0.7, shuffle=True, seed=None):
+    """Split dataset into training data and testing data
+    Args:
+        X: data
+        y: label
+        ration, float, test ratio, default value is 0.6
+        shuffle: boolean, shuffle data or not
+        seed: int, the number used to init random shffle
+    Returns:
+        training data and testing data: (train_X, train_y), (test_X, test_y)
+    """
+    # if shuffle dataset
+    if shuffle:
+        X, y = shuffle_data(X, y, seed)
+    
+    indices = int(X.shape[0]*ratio)
+    train_X, train_y = X[:indices], y[:indices]
+    test_X, test_y = X[indices:], y[indices:]
+
+    return (train_X, train_y), (test_X, test_y)
+
+def select_array_indice(array, dim, i):
+    """Select subarray data of some dimension according to indices given
+    Args:
+        array: array data
+        dim: some dimenion
+        i: indice given
+    returns:
+
+    """
+    indices = [slice(None)] * array.ndim
+    indices[dim] = i
+    # print(indices)
+    return array[tuple(indices)]
+
+def plus_array_indice(value, array, dim, i):
+    """plus element into selected subarray data from an indices given
+    Args:
+        value: elments adding to subarray
+        array: array data
+        dim: certain dimension
+        i: indices given
+    """
+    indices = [slice(None)] * array.ndim
+    indices[dim] = i
+    array[tuple(indices)] += value
+
+
+
+
 
 
 
