@@ -270,8 +270,8 @@ def select_array_indice(array, axis, i):
     returns:
 
     """
-    if axis >= array.ndim or -axis <= -array.ndim - 1:
-        raise ValueError('neither axis < -a.ndim - 1 nor axis > a.ndim')
+    if axis >= array.ndim or axis <= -array.ndim - 1:
+        raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
 
     indices = [slice(None)] * array.ndim
     indices[axis] = i
@@ -286,14 +286,36 @@ def plus_array_indice(value, array, axis, i):
         array: array data
         axis: int, dimension along which array is silce
         i: indices given
+    Returns:
+        
     """
-    if axis >= array.ndim or -axis <= -array.ndim - 1:
-        raise ValueError('neither axis < -a.ndim - 1 nor axis > a.ndim')
+    if axis >= array.ndim or axis <= -array.ndim - 1:
+        raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
     
     indices = [slice(None)] * array.ndim
     indices[axis] = i
     array[tuple(indices)] += value
 
+
+def expand_data(data, axis, repeats):
+    """Expand the shape of an array data.
+    Args:
+        data: array-like data
+        axis: int, position in the expanded axes where the new axis is placed. 
+        repeats: int, the number of expanded data dimension
+    Returns:
+        ndarray data with the number of dimension increased by copies 
+    """
+    if axis >= data.ndim or axis <= -data.ndim-1:
+        raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
+    # get the isze of data dimension
+    data_ndims = len(data.shape)
+    data_orders = list(range(0, data_ndims))
+    data_orders.insert(axis, data_ndims)
+
+    shape = list(data.shape) + [repeats]
+    
+    return data.repeat(repeats).reshape(shape).transpose(data_orders)
 
 
 
