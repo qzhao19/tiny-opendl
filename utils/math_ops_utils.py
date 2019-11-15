@@ -74,6 +74,16 @@ def _matmul(x, y):
 
     return x.dot(y)
 
+def _power(x, num):
+    """Compute x to the power p, (x**p).
+    Args:
+        x: array-like, input value
+        num: array_like of ints, exponents
+
+    Returns:
+        ndarray or scalar
+    """
+    return np.power(x, num)
 
 
 def _sum(x, axis):
@@ -146,3 +156,28 @@ def _softmax(x):
     return exp_vals / sum_vals
 
 
+def get_dropout_mask(x, rate):
+    """Compute dropout
+
+        With probability `rate`, drops elements of `x`. Input that are kept are scaled up by `1 / (1 - rate)`, otherwise outputs `0`.  The scaling is so that
+    the expected sum is unchanged.
+
+    Args:
+        x: array-like input
+        rate: Float between 0 and 1. the probabilty that each element will be dropped
+    
+    Returns:
+        An array-like of same shape of x
+    """
+
+    if not isinstance(rate, float):
+        if not (rate >= 0 and rate < 1):
+            raise ValueError('Rate must be a float between 0 and 1, got %g' %rate)
+    if rate == 0:
+        return x
+
+    mask = np.random.random(x.shape) 
+    keep_prob = 1 - rate
+    scale = 1 / keep_prob
+    keep_mask = mask >= rate
+    return keep_mask
