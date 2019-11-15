@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensor import *
+from tensor import Tensor
 
 def add_test():
     a = Tensor([1,2,3,4,5], auto_grad=True)
