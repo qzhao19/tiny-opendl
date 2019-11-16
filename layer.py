@@ -196,7 +196,6 @@ class Dropout(Layer):
 
     Args:
         rate: Float between 0 and 1. Fraction of the input units to drop.
-
     """
     def __init__(self, rate):
         self.rate = rate
