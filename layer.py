@@ -63,7 +63,8 @@ class Layer(object):
     def init_params(self):
         """initialize layer parameters
         """
-        raise NotImplementedError('Not implemented sub-class method: init_params')
+        # raise NotImplementedError('Not implemented sub-class method: init_params')
+        pass
 
     def __call__(self, input_pl):
         """callable object, a operator for model
