@@ -2,268 +2,209 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from placeholder import Input
 import numpy as np
 
-class Util:
-    """get only one random number
+
+class Layer(object):
+    """Base layers class. This is the class from whicn all layers inherit.
+    A layer is class implementing common neural network operations, e.g. 
+    convolutional layer, recurrent layer, etc.
+
+    Args:
+        parameters: list, containing all parameters e.g. weights, biases
+        input_tensor: like-tensor, input tensor 
+        input_shape: The shape of the tensor
+
     """
-    random_sets = {}
-    # here, we use @staticmethod to recall methods in class Util
-    @staticmethod
-    def unique_id(group='default'):
-        """This function is to find a random tensor id 
+    def __init__(self):
+        self.params = []
+        self.input_tensor = None
+        self.input_shape = None
+        self.output_shape = None
+
+    def add_params(self, params):
+        """Input params that layer need to add, e.g. weights, biases
         Args:
-            group: string, default value 'default'
+            parameters: list, layer params 
         """
-        # inti random id
-        random_id = np.random.randint(0, 1000000)
-        # make sure ranodm_id is not in random_sets
-        if group not in Util.random_sets:
-            Util.random_sets[group] = set([random_id])
-            return random_id
-        # make loop to find one random_id non repeated
-        while random_id in Util.random_sets[group]:
-            random_id = np.random.randint(0, 1000000)
-        # add found random_id into set
-        Util.random_sets[group].add(random_id)
-        return random_id
+        params.set_trainable(trainable=True)
+        self.params.append(params)
 
-    @staticmethod
-    def clear():
-        """clear random set
+    def get_params(self):
+        """get all params that the layer need to update 
         """
-        Util.random_sets = {}
+        return self.params
 
-def unique_id(group='default'):
-    """Interface of class Util.unique_id
-    Args:
-        group: string
+    def set_input_shape(self, input_shape):
+        """setup the input tensor shape for layer
+        Args:
+            input_shape: int list, input tensor shape
+        """
+        self.input_shape = input_shape
+    
+    def get_input_shape(self):
+        """get input tensor shape
+        """
+        return self.input_shape[0]
+
+    def set_output_shape(self, output_shape):
+        """setup output tensor shape for layers
+        Args:
+            output_shape: int list, output shape
+        """
+        self.output_shape = output_shape
+
+    def get_output_shape(self):
+        """get output tensor shape, it will be realized from sub-class
+        """
+        raise NotImplementedError('Not implemented sub-class method: get_output_shape')
+    
+    def init_params(self):
+        """initialize layer parameters
+        """
+        raise NotImplementedError('Not implemented sub-class method: init_params')
+
+    def __call__(self, input_pl):
+        """callable object, a operator for model
+        Args:
+            input_pl: input placeholder
+        """
+        if not isinstance(input_pl, Input):
+            raise ValueError('Input placeholder mus be same type with Input')
+
+        # setup input_placeholder as current layer input, get shape
+        self.set_input_shape(input_pl.shape)
+        # get output_shape = input_pl_shape,  takes input_pl_shape as output shape of a layer
+        output_shape = self.get_output_shape()
+        # create a output_placeholder
+        return Input(output_shape, [input_pl], self)
+
+
+class Add(Layer):
+    """Layer that adds a list of inputs. It takes as input a list of tensors, all of the same shape, and returns
+    a single tensor (also of the same shape).
     """
-    return Util.unique_id(group)
+    def __init__(self):
+        super(Add, self).__init__()
 
-
-
-def tensor_to_matrix(inputs, ksize, stride=1, pad=0):
-    """Reshape tensor of shape [batch_size, channel, height, width] into matrix with shape [batch_size*output_h*output_w, channel*kernel_h*kernel_w] 
-   
-    Assume you have a image of shape (600, 1, 28, 28), padding=0, stride=2 and a filter with dimensions (3,3). You already know 
-    that the output dimension of a convolution operator has to be (13,13) with (28-3)/2 + 1 = 13. tensor_to_matrix creates then a new matrix 
-    with the shape of (9 * 1, 600 * 13 * 13) which you then can matrix multiply with your flattend kernel of shape 
-    (n,9 * 1). The multiplication will result into a new matrix of shape (n,600*13*13) which you can then reshape into your convolution 
-    output (600, n, 13, 13) which is the wanted result. Note that n is the numbers of filters inside your convolution layer.
-    Args:
-        inputs: 4D inputs tensor of shape [batch_size, channel, height, width]
-        ksize: int list, filter shape of [kernel_h, kernel_w] 
-        stride: int, he filter convolves around the input volume by shifting one unit at a time
-        pad: int, zero padding pads the input volume with zeros around the border
-    Returns:
-        2D matrix with same type data that tensor of shape [batch_size*output_h*output_w, channel*kernel_h*kernel_w] 
-    """
-    if len(inputs.shape) != 4:
-        raise ValueError('The shape of input tensor must be [inputs_nums, channel, height, width]')
+    def get_output_shape(self):
+        """inherited class from Layer to compute output shape
+        """
+        # input shape of a layer is equal to output shape
+        output_shape = self.get_input_shape()
+        # setup output shape
+        self.set_output_shape(output_shape)
+        return output_shape
     
-    if len(ksize) != 2:
-        raise ValueError('Kernel size must be a list of shape [kernel_h, kernel_w]')
+    def forward(self, input_tensor1, input_tensor2):
+        return input_tensor1.__add__(input_tensor2)
 
-    if not isinstance(ksize, (tuple, list)):
-        ksize = [ksize]
-
-    if not isinstance(stride, int):
-        stride = int(stride)
-    
-    if not isinstance(pad, int):
-        pad = int(pad)
-
-    inputs_nums, inputs_c, inputs_h, inputs_w = inputs.shape
-    kernel_h, kernel_w = ksize
-    # calculate output shape: output_h and output_w
-    output_h = (inputs_h + pad*2 - kernel_h) // stride + 1
-    output_w = (inputs_w + pad*2 - kernel_w) // stride + 1
-
-    # define tensor and matrix
-    tensor = np.pad(inputs, pad_width=[(0, 0), (0, 0), (pad, pad), (pad, pad)], mode='constant')
-    matrix = np.zeros((inputs_nums, inputs_c, kernel_h, kernel_w, output_h, output_w), dtype=inputs.dtype)
-
-    for y in range(kernel_h):
-        y_max = y + output_h * stride
-        for x in range(kernel_w):
-            x_max = x + output_w * stride
-            matrix[:, :, y, x, :, :] = tensor[:, :, y:y_max:stride, x:x_max:stride]
-
-    matrix = matrix.transpose(0, 4, 5, 1, 2, 3).reshape(inputs_nums*output_h*output_w, -1)
-    return matrix
-
-
-def matrix_to_tensor(inputs, shape, ksize, stride=1, pad=0):
-    """Reshape matrix of shape  [batch_size*out_h, batch_size*out_w] into tensor with shape [batch_size, channel, height, width] 
-    You can think of this method as the reverse function of tensor_to_matrix. It is adding up the corresponing indices and transforms the given matrix
-    back into the initial shape.
-    Assuming you have a matrix_to_tensor transformed matrix with shape (9,600*13*13). The original image had a shape of (600,1,28,28) with padding P = 0 
-    and stride S = 2. col2im creates out of the im2col matrix and the same hyperparameter a new matrix with a shape of (600, 1, 28, 28).
-    Args:
-        inputs: 2D matrix of shape [batch_size*output_h*output_w, batch_size*kernel_h*kernel_w] 
-        shape: int list, tensor of shape [batch_size, channel, height, width]
-        ksize: int list, filter shape of [kernel_h, kernel_w] 
-        stride: int, the filter convolves around the input volume by shifting one unit at a time, default value 1
-        pad: int, zero padding pads the input volume with zeros around the border, default value 0
-    Returns:
-        4D tensor of shape [batch_size, channel, height, width]
-    """
-    if len(inputs.shape) != 4:
-        raise ValueError('The shape of input tensor must be [inputs_nums, channel, height, width]')
-
-    if len(ksize) != 2:
-        raise ValueError('Kernel size must be a list of shape [kernel_h, kernel_w]')
-    
-    if not isinstance(ksize, (tuple, list)):
-        ksize = [ksize]
-
-    if not isinstance(stride, int):
-        stride = int(stride)
-    
-    if not isinstance(pad, int):
-        pad = int(pad)
-
-    # get inputs 4d tensor shape
-    inputs_nums, inputs_c, inputs_h, inputs_w = shape
-    kernel_h, kernel_w = ksize
-    # calculate output tensor shape
-    output_h = (inputs_h + pad*2 - kernel_h) // stride + 1
-    output_w = (inputs_w + pad*2 - kernel_w) // stride + 1
-
-    # here, we difine a matrix with shape [nums, out_height, out_width, in_channel, kernel_height, kernel_width]
-    matrix = inputs.reshape(inputs_nums, output_h, output_w, inputs_c, kernel_h, kernel_w).transpose(0, 3, 4, 5, 1, 2)
-    tensor = np.zeros((inputs_nums, inputs_c, inputs_h + pad*2 + stride - 1, inputs_w + pad*2 + stride - 1), dtype=inputs.dtype)
-
-    for y in range(kernel_h):
-        y_max = y + output_h * stride
-        for x in range(kernel_w):
-            x_max = x + output_w * stride
-            tensor[:, :, y:y_max:stride, x:x_max:stride] += matrix[:, :, y, x, :, :]
-
-    return tensor[:, :, pad:inputs_h + pad, pad:inputs_w + pad]
-
-def get_conv_output_shape(inputs_h, inputs_w, ksize, stride=1, pad=0):
-    """compute convolution's shape
-    Args:
-        inputs_h: int, inputs tensor height
-        inputs_w: int, inputs width
-        ksize: int list, filter shape of [kernel_h, kernel_w]
-        stride: int, the filter convolves around the input volume by shifting one unit at a time, default value 1
-        pad: int, zero padding numbers
-    Returns:
-        outputs height and output width
-    """
-
-    if len(ksize) != 2:
-        raise ValueError('Kernel size must be a list of shape [kernel_h, kernel_w]')
-
-    if not isinstance(inputs_h, int):
-        inputs_h = int(inputs_h)
-    
-    if not isinstance(inputs_w, int):
-        inputs_w = int(inputs_w)
-    
-    if not isinstance(ksize, (tuple, list)):
-        ksize = [ksize]
-    
-    if not isinstance(stride, int):
-        stride = int(stride)
-    
-    if not isinstance(pad, int):
-        pad = int(pad)
-
-    kernel_h, kernel_w = ksize
-    # calculate output height/width
-    output_h = int((inputs_h + pad*2 - kernel_h) / stride) + 1
-    output_w = int((inputs_w + pad*2 - kernel_w) / stride) + 1
-    return (output_h, output_w)
-
-
-def select_array_indice(array, axis, i):
-    """Select subarray data of some dimension according to indices given
-    Args:
-        array: array data
-        axis: int, axis position along which array is silce
-        i: indice given
-    returns:
-    """
-    if axis >= array.ndim or axis <= -array.ndim - 1:
-        raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
-
-    indices = [slice(None)] * array.ndim
-    indices[axis] = i
-    # print(indices)
-    return array[tuple(indices)]
-
-
-def plus_array_indice(value, array, axis, i):
-    """plus element into slected subarray data from an indices given
-    Args:
-        value: elments adding to subarray
-        array: array data
-        axis: int, dimension along which array is silce
-        i: indices given
-    Returns:
+    def __call__(self, input_pl1, input_pl2):
+        """callable method to add 2 layer
+        """
+        if (not isinstance(input_pl1, Input)) and (not isinstance(input_pl2, Input)):
+            raise ValueError('Layer1 and layer2 must be same type')
         
+        if input_pl1.shape != input_pl2.shape:
+            raise ValueError('Layer1 and layer2 must be same shape')
+
+        # input_pl is current layer input
+        self.set_input_shape(input_pl1.shape)
+        output_shape = self.get_output_shape()
+
+        # create output placeholder
+        return Input(output_shape, [input_pl1, input_pl2], self)
+
+
+
+class Flatten(Layer):
+    """Flattens the input. Does not affect the batch size
     """
-    if axis >= array.ndim or axis <= -array.ndim - 1:
-        raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def get_output_shape(self):
+        input_shape = self.get_input_shape()
+        # output_shape = (batch_size, channel*height*width)
+        output_shape = (input_shape[0], np.prod(input_shape[1:]))
+        self.set_output_shape(output_shape)
+        return output_shape
+    def forword(self, input_tensor):
+        return input_tensor.flatten()
+
+
+
+class Reshape(Layer):
+    """Reshapes an output to a certain shape.
+
+    Args:
+        target_shape: integers, Target shape. 
+    """
+    def __init__(self, target_shape):
+        self.target_shape = target_shape
+        super(Reshape, self).__init__()
+
+    def get_output_shape(self):
+        output_shape = target_shape
+        self.set_output_shape(output_shape)
+        return output_shape
     
-    indices = [slice(None)] * array.ndim
-    indices[axis] = i
-    array[tuple(indices)] += value
+    def forward(self, input_tensor):
+        return input_tensor.reshape(target_shape)
 
 
-def _flatten(x):
-    """Collapse array along batch_size axis
+class Activation(Layer):
+    """Applies an activation function to an output.
+    Activation subclass inherts from base class Layer
+
     Args:
-        x: array-like
-        
-    Return:
-        A copy of the array collapsed into one dimension.
-    """
-    return x.reshape(x.shape[0], -1)
+        activation: Activation function, string name of built-in activation function, such as "relu".
 
-def _reshape(x, new_shape):
-    """Gives a new shape to an array without changing its data.
+    """
+    def __init__(self, activation):
+        # In Python 3, we could use super()__init__() syntaxe to inherts baseclass 
+        super(Activation, self).__init__()
+        self.activation = activation
+
+    def get_output_shape(self):
+        """This method is inherited from base-class
+        """
+        self.set_output_shape(self.get_input_shape())
+        return self.output_shape
+
+    def forward(self, input_tensor):
+        """forward propagation function
+        Args:
+            input_tensor: Tensor, input tensor fo shape [batch_size, c, h, w]
+        """
+        if self.activation == 'relu':
+            return input_tensor.relu()
+        elif self.activation == 'sigmoid':
+            return input_tensor.sigmoid()
+        elif self.activation == 'tanh':
+            return input_tensor.tanh()
+        elif self.activation == 'softmax':
+            return input_tensor.softmax()
+        else:
+            raise ValueError('There are not %s activation function, default activations are relu, sigmoid, tanh and softmax')
+
+
+class Dropout(Layer):
+    """Applies Dropout to the input.
+
     Args:
-        x: array-like 
-        new_shape: int or tuple of ints, The new shape should be compatible with the original shape.
-    Returns:
-        reshaped array
+        rate: Float between 0 and 1. Fraction of the input units to drop.
+
     """
-    return x.reshape(new_shape)
+    def __init__(self, rate):
+        self.rate = rate
+        super(Dropout, self).__init__()
 
-
-def _transpose(x, axes):
-    """Permute the dimensions of an array.
-    Args:
-        x: array-like, input array
-        axes : list of ints, optional By default, reverse the dimensions, otherwise permute the axes according to the values given.
-    Returns:
-        p : ndarray x with its axes permuted. 
-    """
-    return np.transpose(x, axes)
-
-
-def expand_array(data, axis, repeats):
-    """Expand the shape of an array data.
-    Args:
-        data: array-like data
-        axis: int, position in the expanded axes where the new axis is placed. 
-        repeats: int, the number of expanded data dimension
-    Returns:
-        ndarray data with the number of dimension increased by copies 
-    """
-    if axis >= data.ndim or axis <= -data.ndim-1:
-        raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
-    # get the isze of data dimension
-    data_ndims = len(data.shape)
-    data_orders = list(range(0, data_ndims))
-    data_orders.insert(axis, data_ndims)
-
-    shape = list(data.shape) + [repeats]
-    
-    return data.repeat(repeats).reshape(shape).transpose(data_orders)
+    def get_output_shape():
+        output_shape = self.get_input_shape()
+        self.set_output_shape(output_shape)
+        return output_shape
+    def forward(self, input_tensor):
+        return input_tensor.dropout(self.rate)
 
