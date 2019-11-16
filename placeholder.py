@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 
 class Input(object):
     """A placeholder class for a tensor that be fed 
@@ -37,4 +41,3 @@ class Input(object):
     
     def set_input_layer(self, input_layer):
         self.input_layer = input_layer
-
