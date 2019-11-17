@@ -2,8 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from placeholder import Input
 import numpy as np
+from placeholder import Input
 
 
 class Layer(object):
@@ -63,8 +63,7 @@ class Layer(object):
     def init_params(self):
         """initialize layer parameters
         """
-        # raise NotImplementedError('Not implemented sub-class method: init_params')
-        pass
+        raise NotImplementedError('Not implemented sub-class method: init_params')
 
     def __call__(self, input_pl):
         """callable object, a operator for model
@@ -131,6 +130,7 @@ class Flatten(Layer):
         output_shape = (input_shape[0], np.prod(input_shape[1:]))
         self.set_output_shape(output_shape)
         return output_shape
+
     def forword(self, input_tensor):
         return input_tensor.flatten()
 
@@ -171,8 +171,9 @@ class Activation(Layer):
     def get_output_shape(self):
         """This method is inherited from base-class
         """
-        self.set_output_shape(self.get_input_shape())
-        return self.output_shape
+        output_shape = self.get_input_shape()
+        self.set_output_shape(output_shape)
+        return output_shape
 
     def forward(self, input_tensor):
         """forward propagation function
@@ -189,22 +190,104 @@ class Activation(Layer):
             return input_tensor.softmax()
         else:
             raise ValueError('There are not %s activation function, default activations are relu, sigmoid, tanh and softmax')
-
+    
 
 class Dropout(Layer):
     """Applies Dropout to the input.
 
     Args:
         rate: Float between 0 and 1. Fraction of the input units to drop.
+
     """
     def __init__(self, rate):
-        self.rate = rate
         super(Dropout, self).__init__()
-
+        self.rate = rate
+        
     def get_output_shape():
         output_shape = self.get_input_shape()
         self.set_output_shape(output_shape)
         return output_shape
+
     def forward(self, input_tensor):
         return input_tensor.dropout(self.rate)
+
+
+class Conv2D(Layer):
+    """2D convolution layer
+    Args:
+        filter_nums: Integer, the number of filters in the convolution
+        ksize: Tuple or list of integer, the length of the convolution window.
+        stride: Integer, the stride length of the convolution.
+        pad: Integer, the padding size
+        input_shape: Tuple of list of integer, the input tensor shape, default value is None
+        weight_initializer: Initializer for the `kernel` weights matrix.
+        bias_initializer: Initializer for the bias vector.
+
+    """
+    def __init__(self, filter_nums, ksize, stride=1, pad=0, input_shape=None, weight_initializer='normal', bias_initializer='zeros'):
+        # inherite base class from Layer
+        super(Conv2D, self).__init__()
+        self.filter_nums = filter_nums
+        self.ksize = ksize
+        self.stride =stride
+        self.pad = pad
+
+        if input_shape is not None:
+            input_c, input_h, input_w = input_shape
+            self.set_input_shape((None, input_c, input_h, input_w))
+
+        # self.weight_vals = initializer.get(weight_initializer)
+        # self.bias_vals = initializer.get(weight_initializer)
+        self.weight = None
+        self.bias = None
+
+    def get_output_shape(self):
+        """Should to compute output conv layer shape
+        """
+        input_nums, input_c, input_h, input_w = self.get_input_shape()
+        # comput output_h and output_w from function get_conv_output_shape
+        output_h, output_w = get_conv_output_shape(input_h, input_w, self.ksize, self.stride, self.pad)
+        output_shape = (input_nums, self.filter_nums, output_h, output_w)
+        self.set_output_shape(output_shape)
+        return output_shape
+
+    def init_params(self):
+        """sub-class method that inherit from base class Layer
+        """
+        kernel_h, kernel_w = self.ksize
+        input_c = self.get_input_shape()[1]
+        # weight_vals = initializer.get(weight_initializer)
+        # bias_vals = initializer.get(bias_initializer)
+
+        weight_vals = np.random.randn(input_c * kernel_h * kernel_w, self.filter_nums) * np.sqrt(2.0 / input_c * kernel_h * kernel_w)
+        bias_vals = np.zeros(self.filter_nums)
+
+        self.weight = Tensor(weight_vals, auto_grad=True)
+        self.bias = Tensor(bias_vals, auto_grad=True)
+        # apend weight and bias into self.params
+        self.params.append(self.weight)
+        self.params.append(self.bias)
+
+    def forward(self, input_tensor):
+        """forward propagation 
+        Args:
+            input_tensor: Tensor with shape of [batch_size, c, h, w]
+
+        Returns:
+            output tensor of shape [batch_size, c, output_h, output_w]
+        """
+        input_nums, input_c, input_h, input_w = input_tensor.shape
+        output_h, output_w = get_conv_output_shape(input_h, input_w, self.ksize, self.stride, self.pad)
+        # determine weight and bias are existed
+        if (self.weight is None) or (self.bias is None):
+            self.get_input_shape(input_nums, input_c, input_h, input_w)
+            self.get_output_shape()
+            self.init_params()
+
+        # Expand input data into a two-dimensional array of shape [input_nums*output_h*output_w, input_c*kernel_h*kernel_w]
+        matrix = input_tensor.tensor_to_matrix(self.ksize, self.stride, self.pad)
+        # shape [input_num*output_h*output_h, filter_nums]
+        output = matrix.dot(self.weight)
+        output = output + self.bias.expand(0, matrix.data.shape[0]) # [input_nums * output_h * output_w, filter_nums]
+        return output.reshape(input_nums, output_h, ouput_w, -1).transpose(0, 3, 1, 2) # [input_nums, filter_nums, output_h, output_w]
 
