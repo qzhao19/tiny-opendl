@@ -291,3 +291,52 @@ class Conv2D(Layer):
         output = output + self.bias.expand(0, matrix.data.shape[0]) # [input_nums * output_h * output_w, filter_nums]
         return output.reshape(input_nums, output_h, ouput_w, -1).transpose(0, 3, 1, 2) # [input_nums, filter_nums, output_h, output_w]
 
+
+class MaxPooling(Layer):
+    """Max pooling operation for spatial data.
+
+
+
+    """
+    def __init__(self, pool_size, stride=1, pad=0, input_shape=None):
+        super(MaxPooling, self).__init__()
+        self.pool_size = pool_size
+        self.stride = stride
+        self.pad = pad
+        self.input_shape = input_shape
+
+        if input_shape is not None:
+            input_c, input_h, input_w = input_shape
+            self.set_input_shape((None, input_c, input_h, input_w))
+
+    def get_output_shape(self):
+        """Should to compute output maxpooling layer shape
+        """
+        input_nums, input_c, input_h, input_w = self.get_input_shape()
+        # comput output_h and output_w from function get_conv_output_shape
+        output_h, output_w = get_conv_output_shape(input_h, input_w, self.pool_size, self.stride, self.pad)
+        output_shape = (input_nums, self.filter_nums, output_h, output_w)
+        self.set_output_shape(output_shape)
+        return output_shape
+
+    def forward(self, input_tensor):
+        """forward propagation 
+        Args:
+            input_tensor: Tensor with shape of [batch_size, c, h, w]
+
+        """
+        # setup input_tensor shape
+        self.set_input_shape(input_tensor.data.shape)
+        output_shape = self.get_output_shape()
+
+        input_nums, input_c, input_h, input_w = input_tensor.data.shape
+        # compute output h and w from the function get_conv_output_shape
+        output_h, output_w = get_conv_output_shape(input_h, input_w, self.pool_size, self.stride, self.pad)
+
+        # Expand input data into a two-dimensional array of shape [input_nums*output_h*output_w, input_c*kernel_h*kernel_w]
+        matrix = input_tensor.tensor_to_matrix(self.pool_size, self.stride, self.pad)
+        matrix = matrix.reshape((-1, self.pool_size[0] * self.pool_size[1]))
+        output = matrix.max()
+        return output.reshape((input_nums, output_h, output_w, input_c)).transpose((0, 3, 1, 2))
+
+
