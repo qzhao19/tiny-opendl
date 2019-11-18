@@ -34,4 +34,4 @@ class SGD(Optimizer):
         for layer in self.layers:
             for param in layer.params:
                 param.data -= param.grad.data * self.learning_rate
-				param.grad.data *= 0
+		param.grad.data *= 0
