@@ -250,12 +250,12 @@ def transpose(x, axes):
     return np.transpose(x, axes)
 
 
-def expand_array(data, axis, repeats):
-    """Expand the shape of an array data.
+def expand_data(data, axis, repeats):
+    """Expand the data along axes.
     Args:
         data: array-like data
         axis: int, position in the expanded axes where the new axis is placed. 
-        repeats: int, the number of expanded data dimension
+        repeats: int, the number of dimension where we want to expand along axis
     Returns:
         ndarray data with the number of dimension increased by repeats 
     """
