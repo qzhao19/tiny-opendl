@@ -147,7 +147,7 @@ class Reshape(Layer):
         super(Reshape, self).__init__()
 
     def get_output_shape(self):
-        output_shape = target_shape
+        output_shape = self.target_shape
         self.set_output_shape(output_shape)
         return output_shape
     
