@@ -45,13 +45,15 @@ def unique_id(group='default'):
 
 
 def tensor_to_matrix(inputs, ksize, stride=1, pad=0):
-    """Reshape tensor of shape [batch_size, channel, height, width] into matrix with shape [batch_size*output_h*output_w, channel*kernel_h*kernel_w] 
+    """Reshape tensor of shape [batch_size, channel, height, width] into matrix with 
+    shape [batch_size*output_h*output_w, channel*kernel_h*kernel_w] 
    
-    Assume you have a image of shape (600, 1, 28, 28), padding=0, stride=2 and a filter with dimensions (3,3). You already know 
-    that the output dimension of a convolution operator has to be (13,13) with (28-3)/2 + 1 = 13. tensor_to_matrix creates then a new matrix 
-    with the shape of (9 * 1, 600 * 13 * 13) which you then can matrix multiply with your flattend kernel of shape 
-    (n,9 * 1). The multiplication will result into a new matrix of shape (n,600*13*13) which you can then reshape into your convolution 
-    output (600, n, 13, 13) which is the wanted result. Note that n is the numbers of filters inside your convolution layer.
+    Assume you have a image of shape (600, 1, 28, 28), padding=0, stride=2 and a filter with dimensions (3,3). 
+    You already know that the output dimension of a convolution operator has to be (13,13) with (28-3)/2 + 1 = 13. 
+    tensor_to_matrix creates then a new matrix with the shape of (9 * 1, 600 * 13 * 13) which you then can matrix 
+    multiply with your flattend kernel of shape (n,9 * 1). The multiplication will result into a new matrix of shape 
+    (n,600*13*13) which you can then reshape into your convolution output (600, n, 13, 13) which is the wanted result. 
+    Note that n is the numbers of filters inside your convolution layer.
     Args:
         inputs: 4D inputs tensor of shape [batch_size, channel, height, width]
         ksize: int list, filter shape of [kernel_h, kernel_w] 
@@ -216,7 +218,7 @@ def plus_array_indice(value, array, axis, i):
     array[tuple(indices)] += value
 
 
-def _flatten(x):
+def flatten(x):
     """Collapse array along batch_size axis
     Args:
         x: array-like
@@ -226,7 +228,7 @@ def _flatten(x):
     """
     return x.reshape(x.shape[0], -1)
 
-def _reshape(x, new_shape):
+def reshape(x, new_shape):
     """Gives a new shape to an array without changing its data.
     Args:
         x: array-like 
@@ -237,7 +239,7 @@ def _reshape(x, new_shape):
     return x.reshape(new_shape)
 
 
-def _transpose(x, axes):
+def transpose(x, axes):
     """Permute the dimensions of an array.
     Args:
         x: array-like, input array
@@ -255,12 +257,13 @@ def expand_array(data, axis, repeats):
         axis: int, position in the expanded axes where the new axis is placed. 
         repeats: int, the number of expanded data dimension
     Returns:
-        ndarray data with the number of dimension increased by copies 
+        ndarray data with the number of dimension increased by repeats 
     """
     if axis >= data.ndim or axis <= -data.ndim-1:
         raise ValueError('Neither axis < -a.ndim - 1 nor axis > a.ndim')
     # get the isze of data dimension
     data_ndims = len(data.shape)
+    # get data dims list e.g. [0, 1, 2]
     data_orders = list(range(0, data_ndims))
     data_orders.insert(axis, data_ndims)
 
@@ -268,3 +271,28 @@ def expand_array(data, axis, repeats):
     
     return data.repeat(repeats).reshape(shape).transpose(data_orders)
 
+
+def one_hot_encoder(y, label_nums=None):
+    """One hot encoding method, Categorical data must be converted be number data.A one hot encoding is a representation of categorical variables as binary vectors.
+    data, This first requires that the categorical values be mapped to integer values. Then, each integer value is represented as a binary vector that is all 
+    zero values except the index of the integer, which is marked with a 1.
+    Args:
+        y: predicting target 
+        label_nums: the number of labels
+    Returns:
+        one hot encoded label
+    """
+    if not isinstance(y, np.ndarray):
+        y = np.array(y)
+
+    if len(y.shape) != 1:
+        raise ValueError('The size of input shape must be 1!')
+
+    if label_nums is not None:
+        label_nums = label_nums
+    else:
+        label_nums = np.max(y) + 1
+    
+    one_hot = np.zeros((y.shape[0], label_nums), dtype=y.dtype)
+    one_hot[np.arange(y.shape[0]), y] = 1
+    return one_hot
