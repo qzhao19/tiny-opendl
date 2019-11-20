@@ -219,9 +219,11 @@ class Tensor(object):
         # relu: f'(x) = {0, x<0; 1, x>0}
         elif self.op == 'relu':
             if self.parents[0].data > 0:
-                grad_data = self.grad.data * (self.parents[0].data * np.ones_like(self.parents[0].data))
+                # grad_data = self.grad.data * (self.parents[0].data * np.ones_like(self.parents[0].data))
+                grad_data = self.grad.data * (self.data * np.ones_like(self.data))
             else:
-                grad_data = self.grad.data * (self.parents[0].data * np.zeros_like(self.parents[0].data))
+                # grad_data = self.grad.data * (self.parents[0].data * np.zeros_like(self.parents[0].data))
+                grad_data = self.grad.data * (self.data * np.zeros_like(self.data))
             grad = Tensor(grad_data)
             self.parents[0].backward(grad, self)
         
@@ -266,49 +268,51 @@ class Tensor(object):
         return str(self.data.__str__())
 
     def __add__(self, other):
-        add_vals = _add(self.data, other.data)
+        add_vals = add(self.data, other.data)
         output = Tensor(add_vals, parents=[self, other], op='add', auto_grad=True)
         return output
 
     def __sub__(self, other):
-        sub_vals = _sub(self.data, other.data)
+        sub_vals = sub(self.data, other.data)
         output =  Tensor(sub_vals, parents=[self, other], op='sub', auto_grad=True)
         return output
 
     def __neg__(self):
-        neg_vals = _neg(self.data)
+        neg_vals = neg(self.data)
         output = Tensor(neg_vals, parents=[self], op='neg', auto_grad=True)
         return output
 
     def __mul__(self, other):
-        mul_vals = _mul(self.data, other.data)
+        mul_vals = mul(self.data, other.data)
         output = Tensor(mul_vals, parents=[self, other], op='mul', auto_grad=True)
         return output
 
     def __matmul__(self, other):
-        matmul_vals = _matmul(self.data, other.data)
+        matmul_vals = matmul(self.data, other.data)
         return Tensor(matmul_vals, parents=[self, other], op='matmul', auto_grad=True)
 
     def __power__(self, num):
-        power_vals = _power(self.data, num)
+        power_vals = power(self.data, num)
         output = Tensor(power_vals, parents=[self], op='power', auto_grad=True)
         output.op_params = {'num': num}
         return output
 
     def sum(self, axis=None):
-        sum_vals = _sum(self.data, axis)
+        sum_vals = sum(self.data, axis)
         output = Tensor(sum_vals, parents=[self], op='sum', auto_grad=True)
         output.op_params = {'axis': axis}
         return output
 
     def max(self):
-        max_vals, max_inds = _max(self.data)
+        """Find maximal of array elements and corresponding indices along axis = 1
+        """
+        max_vals, max_inds = max(self.data)
         output = Tensor(max_vals, parents=[self], op='max', auto_grad=True)
         output.op_params = {'argmax': max_inds}
         return output
 
     def reshape(self, new_shape):
-        shaped_vals = _reshape(self.data, new_shape)
+        shaped_vals = reshape(self.data, new_shape)
         output = Tensor(shaped_vals, parents=[self], op='reshape', auto_grad=True)
         # output.op_params = {'new_shape': new_shape}
         return output
@@ -320,13 +324,13 @@ class Tensor(object):
         return output
 
     def transpose(self, axes=None):
-        trans_vals = _transpose(self.data, axes=axes)
+        trans_vals = transpose(self.data, axes=axes)
         output = Tensor(trans_vals, parents=[self], op='transpose', auto_grad=True)
         output.op_params = {'axes': axes}
         return output
 
     def flatten(self):
-        flatted_vals = _flatten(self.data)
+        flatted_vals = flatten(self.data)
         output = Tensor(flatted_vals, parents=[self], op='flatten', auto_grad=True)
         return output
 
@@ -358,17 +362,17 @@ class Tensor(object):
 
 
     def relu(self):
-        relu_vals = _relu(self.data)
+        relu_vals = relu(self.data)
         output = Tensor(relu_vals, parents=[self], op='relu', auto_grad=True)
         return output
 
     def sigmoid(self):
-        sigmoid_vals = _sigmoid(self.data)
+        sigmoid_vals = sigmoid(self.data)
         output = Tensor(sigmoid_vals, parents=[self], op='sigmoid', auto_grad=True)
         return output
 
     def tanh(self):
-        tanh_vals = _tanh(self.data)
+        tanh_vals = tanh(self.data)
         output = Tensor(tanh_vals, parents=[self], op='tanh', auto_grad=True)
         return output
 
@@ -381,12 +385,12 @@ class Tensor(object):
             return self.tanh()
 
     def softmax(self):
-        softmax_vals = _softmax(self.data)
+        softmax_vals = softmax(self.data)
         output = Tensor(softmax_vals, parents=[self], op='softmax', auto_grad=True)
         return output
 
     def cross_entropy(self, target):
-        logits = _softmax(self.data)
+        logits = softmax(self.data)
         labels = target.data
         delta = 1e-7
         cross_entropy = -np.sum(labels * np.log(logits + delta))
