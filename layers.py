@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-from placeholder import Input
+from inputs import Input
 
 
 class Layer(object):
@@ -295,6 +295,11 @@ class Conv2D(Layer):
 class MaxPooling(Layer):
     """Max pooling operation for spatial data.
 
+    Attributs:
+        pool_size: Integer, size of the max pooling windows.
+        strides: Integer, Factor by which to downscale.
+        pad: Integer, the padding size
+        input_shape: shape tupel or list
 
 
     """
@@ -327,7 +332,8 @@ class MaxPooling(Layer):
         """
         # setup input_tensor shape
         self.set_input_shape(input_tensor.data.shape)
-        output_shape = self.get_output_shape()
+        self.get_output_shape()
+
 
         input_nums, input_c, input_h, input_w = input_tensor.data.shape
         # compute output h and w from the function get_conv_output_shape
@@ -339,4 +345,67 @@ class MaxPooling(Layer):
         output = matrix.max()
         return output.reshape((input_nums, output_h, output_w, input_c)).transpose((0, 3, 1, 2))
 
+
+class Dense(Layer):
+    """Regular densely-connected NN layer.
+
+    Dense implements the operation: output = dot(inputs, weight) + bias
+
+    Args:
+        output_dim: Integer, dim of output = input_shape[-1] 
+        input_shape: shape tupel or list
+        weight_initializer: String 
+        bias_initializer: String
+
+    """
+    def __init__(self, output_dim, input_shape=None, weight_initializer='normal', bias_initializer='zeros'):
+        super(Dense, self).__init__()
+        self.output_dim = output_dim
+        self.weight = None
+        self.bias = None
+
+        if input_shape is not None:
+            self.set_input_shape((None,) + input_shape)
+
+    def get_output_shape(self):
+        input_shape = self.get_input_shape()
+        output_shape = input_shape[:-1] + (self.output_dim, )
+        self.set_output_shape(output_shape)
+        return output_shape
+
+    def init_params(self):
+        # get input and output dim
+        input_dim = self.get_input_shape()[-1]
+        output_dim = self.get_output_shape()[-1]
+
+        # init weight and bias
+        # weight_vals = initializer.get(weight_initializer)
+        # bais_vals = initializer(bias_initializer)
+        weight_vals = np.random.random(input_dim, output_dim) * np.sqrt(2.0 / input_dim)
+        bias_vals = np.zeros((output_dim))
+
+        self.weight = Tensor(weight_vals, auto_grad=True)
+        self.bais = Tensor(bias_vals, auto_grad=True)
+        # add params into param_list
+        self.add_params(weight)
+        self.add_params(bias)
+
+    def forward(self, input_tensor):
+        """forward compute fot sequence and graph model
+        """
+        if self.weight is None:
+            self.set_input_shape(input_tensor.data.shape)
+            output_shape = self.get_output_shape()
+            self.init_params()
+
+        if len(input_tensor.data.shape) == 2:
+            batch_size, _ = input_tensor.data.shape
+            # kernel = dot(inputs, weights)
+            output = input_tensor.data.dot(self.weight) + self.bias.expand(0, batch_size)
+            return output
+        elif len(input_tensor.data.shape) == 3:
+            batch_size, repeats, _ = input_tensor.data.shape
+            kernel = input_tensor.data.dot(self.weight)
+            output = kernel + self.bias.expand(0, repeats).expand(0, batch_size)
+            return output
 
