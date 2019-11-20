@@ -1,10 +1,10 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# from __future__ import absolute_import
+# from __future__ import division
+# from __future__ import print_function
 
 import numpy as np
 
-def _add(x, y):
+def add(x, y):
     """Addition math operation
     Args:
         x, y: array_like, the arrays to be added.
@@ -20,7 +20,7 @@ def _add(x, y):
     return x + y
 
 
-def _sub(x, y):
+def sub(x, y):
     """Subtraction 
     Args:
         x, y: array_like, the arrays to be subtracted.
@@ -36,7 +36,7 @@ def _sub(x, y):
     return x - y
 
 
-def _neg(x):
+def neg(x):
     """Computes numerical negative value element-wise.
     Args:
         x: array_like 
@@ -46,7 +46,7 @@ def _neg(x):
     return x * (-1)
 
 
-def _mul(x, y):
+def mul(x, y):
     """Computes multiplication element-wise.
     Args:
         x, y: array_like data
@@ -58,7 +58,7 @@ def _mul(x, y):
     
     return x * y
 
-def _matmul(x, y):
+def matmul(x, y):
     """Multiplies matrix a by matrix b, producing a * b.
     Args:
         x: Tensor of type float or int and rank > 1
@@ -74,7 +74,7 @@ def _matmul(x, y):
 
     return x.dot(y)
 
-def _power(x, num):
+def power(x, num):
     """Compute x to the power p, (x**p).
     Args:
         x: array-like, input value
@@ -86,7 +86,7 @@ def _power(x, num):
     return np.power(x, num)
 
 
-def _sum(x, axis):
+def sum(x, axis):
     """Sum of array elements over a given axis.
     Args:
         x: array-like
@@ -98,7 +98,7 @@ def _sum(x, axis):
     return x.sum(axis)
 
 
-def _max(x):
+def max(x):
     """Find maximal of array elements and corresponding indices along axis = 1
     Args:
         x: array-like
@@ -113,7 +113,7 @@ def _max(x):
     return max_vals, max_inds
 
 
-def _relu(x):
+def relu(x):
     """Rectified linear unit.
     Args:
         x: a numpy array
@@ -122,7 +122,7 @@ def _relu(x):
     """
     return np.where(x>0, x, 0)
 
-def _sigmoid(x):
+def sigmoid(x):
     """Sigmoid activation function. f(x) = 1/(1 + exp(-x))
     Args:
         x: array-like 
@@ -131,7 +131,7 @@ def _sigmoid(x):
     """
     return 1 / (1 + np.exp(-x))
 
-def _tanh(x):
+def tanh(x):
     """Element-wise tanh. Specific: (exp(x)-exp(-x))/(exp(x)+exp(-x))
     Args:
         x: array-like
@@ -141,7 +141,7 @@ def _tanh(x):
     """
     return 1 - (2 / (np.exp(2*x) + 1))
 
-def _softmax(x):
+def softmax(x):
     """Computes softmax activations. softmax = exp(x) / sum(exp(x), axis=-1)
     Args:
         x: array-like
