@@ -58,12 +58,13 @@ class Layer(object):
     def get_output_shape(self):
         """get output tensor shape, it will be realized from sub-class
         """
-        raise NotImplementedError('Not implemented sub-class method: get_output_shape')
+        raise NotImplementedError
     
     def init_params(self):
         """initialize layer parameters
         """
-        raise NotImplementedError('Not implemented sub-class method: init_params')
+        # raise NotImplementedError
+        pass
 
     def __call__(self, input_pl):
         """callable object, a operator for model
@@ -332,7 +333,7 @@ class MaxPooling(Layer):
         """
         # setup input_tensor shape
         self.set_input_shape(input_tensor.data.shape)
-        self.get_output_shape()
+        output_shape = self.get_output_shape()
 
 
         input_nums, input_c, input_h, input_w = input_tensor.data.shape
