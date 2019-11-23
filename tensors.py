@@ -318,7 +318,7 @@ class Tensor(object):
         return output
 
     def expand(self, axis, repeats):
-        expanded_vals = expand_array(self.data, axis, repeats)
+        expanded_vals = expand_data(self.data, axis, repeats)
         output = Tensor(expanded_vals, parents=[self], op='expand', auto_grad=True)
         output.op_params = {'axis': axis}
         return output
