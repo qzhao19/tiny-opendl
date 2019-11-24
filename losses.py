@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensor import Tensor
+from tensors import Tensor
 from .utils.math_ops_utils import *
 
 
