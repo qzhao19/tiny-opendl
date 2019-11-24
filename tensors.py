@@ -171,8 +171,8 @@ class Tensor(object):
         elif self.op == 'expand':
             axis = self.op_params['axis']
             repeats = self.parents[0].data.shape[axis]
-            expanded_data = expand_array(self.grad.data, axis, repeats)
-            grad = Tensor(expanded_data)
+            expanded_vals = expand_data(self.grad.data, axis, repeats)
+            grad = Tensor(expanded_vals)
             self.parents[0].backward(grad, self)
         
         elif self.op == 'transpose':
@@ -425,5 +425,4 @@ class Tensor(object):
     def refresh_dependencies(self):
         self.clean_dependencies()
         self.create_dependencies()
-
 
