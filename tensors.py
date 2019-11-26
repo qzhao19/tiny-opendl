@@ -393,7 +393,8 @@ class Tensor(object):
         logits = softmax(self.data)
         labels = target.data
         delta = 1e-7
-        cross_entropy = -np.sum(labels * np.log(logits + delta))
+        batch_size = self.data.shape[0]
+        cross_entropy = -np.sum(labels * np.log(logits + delta))/batch_size
         output = Tensor(cross_entropy, parents=[self, target], op='cross_entropy', auto_grad=True)
         output.op_params = {'logits': logits}
         return output
