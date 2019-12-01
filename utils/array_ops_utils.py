@@ -10,22 +10,22 @@ class Util:
     random_sets = {}
     # here, we use @staticmethod to recall methods in class Util
     @staticmethod
-    def unique_id(group='default'):
+    def unique_id(name='default'):
         """This function is to find a random tensor id 
         Args:
-            group: string, default value 'default'
+            name: string, default value 'default'
         """
         # inti random id
         random_id = np.random.randint(0, 1000000)
         # make sure ranodm_id is not in random_sets
-        if group not in Util.random_sets:
-            Util.random_sets[group] = set([random_id])
+        if name not in Util.random_sets:
+            Util.random_sets[name] = set([random_id])
             return random_id
         # make loop to find one random_id non repeated
-        while random_id in Util.random_sets[group]:
+        while random_id in Util.random_sets[name]:
             random_id = np.random.randint(0, 1000000)
         # add found random_id into set
-        Util.random_sets[group].add(random_id)
+        Util.random_sets[name].add(random_id)
         return random_id
 
     @staticmethod
@@ -35,12 +35,12 @@ class Util:
         Util.random_sets = {}
 
 
-def unique_id(group='default'):
+def unique_id(name='default'):
     """Interface of class Util.unique_id
     Args:
         group: string
     """
-    return Util.unique_id(group)
+    return Util.unique_id(name)
 
 
 
