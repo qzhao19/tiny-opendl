@@ -19,6 +19,12 @@ A lightweight deep learning framework using Python language, which enables creat
   - Activation
   - Conv2D
   - Dense
-  - 
+  - Dropout
   - Flatten
-  - 
+  - MaxPooling
+  - Reshape
+- `Losses`
+  - MSE(Mean Squar Error)
+  - SoftmaxCrossEntropy
+- `Optimizer`
+  - SGD
