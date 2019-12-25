@@ -26,5 +26,6 @@ A lightweight deep learning framework using Python language, which enables creat
 - `Losses`
   - MSE(Mean Squar Error)
   - SoftmaxCrossEntropy
-- `Optimizer`
+- `Optimizers`
   - SGD
+  - Momentum
