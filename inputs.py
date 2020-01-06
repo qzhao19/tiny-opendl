@@ -24,8 +24,8 @@ class Input(object):
         # An optional name string for the layer.
         self.id = None
         self.tensor = None
-        if shape is None and input_pl is None:
-            raise ValueError('Provide the input shape and input placeholder')
+        # if shape is None and input_pl is None:
+        #     raise ValueError('Provide the input shape and input placeholder')
         self.shape = shape
         self.depend_pls = depend_pls
         self.input_layer = input_layer
