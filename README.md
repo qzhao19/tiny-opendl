@@ -29,3 +29,5 @@ A lightweight deep learning framework using Python language, which enables creat
 - `Optimizers`
   - SGD
   - Momentum
+
+# Contents
