@@ -10,7 +10,7 @@ class Input(object):
     Args:
         shape: int list, the shape of the tensor to be fed, 
                A shape tuple, not including the batch size.
-        input_pl: the input placeholder to take the last layer placeholder
+        depend_pls: the depend placeholder to take the last layer placeholder
         input_layer: tensor, input tensor
     
     Methods:
@@ -20,14 +20,14 @@ class Input(object):
         set_input_placeholder:
         set_input_layer:
     """
-    def __init__(self, shape=None, input_pl=None, input_layer=None):
+    def __init__(self, shape=None, depend_pls=None, input_layer=None):
         # An optional name string for the layer.
         self.id = None
         self.tensor = None
         if shape is None and input_pl is None:
             raise ValueError('Provide the input shape and input placeholder')
         self.shape = shape
-        self.input_pl = input_pl
+        self.depend_pls = depend_pls
         self.input_layer = input_layer
 
     def set_id(self, id):
@@ -39,8 +39,8 @@ class Input(object):
     def set_shape(self, shape):
         self.shape = shape
     
-    def set_input_pl(self, input_pl):
-        self.input_pl = input_pl
+    def set_depend_pls(self, depend_pls):
+        self.depend_pls = depend_pls
     
     def set_input_layer(self, input_layer):
         self.input_layer = input_layer
