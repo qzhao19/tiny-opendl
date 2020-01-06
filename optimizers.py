@@ -14,7 +14,7 @@ class Optimizer(object):
     def __init__(self):
         pass
 
-    def set_layers(slef, layers):
+    def set_layers(self, layers):
         self.layers = layers
     
     def update_layers(self):
