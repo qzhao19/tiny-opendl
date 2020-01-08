@@ -2,7 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensors import Tensor
+import numpy as np
+from tensor import Tensor
 from .utils.math_ops_utils import *
 
 
