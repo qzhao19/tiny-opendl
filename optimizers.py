@@ -34,10 +34,10 @@ class SGD(Optimizer):
 
     """
     def __init__(self, learning_rate):
-        super(SGD, self).__init__()
+        # super(SGD, self).__init__()
         self.learning_rate = learning_rate
     
-    def update_layer(self):
+    def update_layers(self):
         """inherited method from base class
         """
         for layer in self.layers:
@@ -56,12 +56,12 @@ class Momentum(Optimizer):
     v = -lr * dx + v * momemtum
     """
     def __init__(self, learning_rate=0.1, momemtum=0.0):
-        super(Momentum, self).__init__()
+        # super(Momentum, self).__init__()
         self.learning_rate = learning_rate
         self.momentum = momentum
         self.v = None
 
-    def update_layer(self):
+    def update_layers(self):
         if self.v is None:
             self.v = {} # strore update vals
         for i, layer in enumerate(self.layers):
@@ -74,6 +74,7 @@ class Momentum(Optimizer):
                 self.v[i][j] = self.momentum * self.v[i][j] + (1 - self.momentum) * param.grad.data
                 param.data -= self.learning_rate * self.v[i][j]
 				param.grad.data *= 0
+                
     def get_params(self):
         params = {'learning_rate': float(self.learning_rate), 
                   'momentum': float(self.momentum)}
