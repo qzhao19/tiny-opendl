@@ -12,26 +12,26 @@ class Model(object):
 
     Attributs:
         layers: Layer, network layer e.g. cnn, add, reshape, Activation
-        input_pls: list, input placeholders
-        output_pls: list, output placeholder
+        input_X_pls: list, input placeholders
+        input_y_pls: list, output placeholder
 
     """
-    def __init__(self, input_pls, output_pls):
+    def __init__(self, input_X_pls, input_y_pls):
         """init model params 
         """
         self.layers = set()
         self.all_pls = {}
 
         # input/output placeholder must be a list
-        self.input_pls = input_pls if isinstance(input_pls, list) else [input_pls]
-        self.output_pls = output_pls if isinstance(output_pls, list) else [output_pls]
+        self.input_X_pls = input_X_pls if isinstance(input_X_pls, list) else [input_X_pls]
+        self.input_y_pls = input_y_pls if isinstance(input_y_pls, list) else [input_y_pls]
 
         # element of placeholder type should be Input
-        if any(map(lambda x: not isinstance(x, Input), self.input_pls)):
-            raise TypeError('Input placeholder is not Input type!')
+        if any(map(lambda x: not isinstance(x, Input), self.input_X_pls)):
+            raise TypeError('Input X placeholder is not Input type!')
 
-        if any(map(lambda x: not isinstance(x, Input), self.output_pls)):
-            raise TypeError('Output placeholder is not Input type!')
+        if any(map(lambda x: not isinstance(x, Input), self.input_y_pls)):
+            raise TypeError('Input y placeholder is not Input type!')
 
     def find_placeholders_layers(self):
         """Iterate over all placeholders and layers from the output layer, 
@@ -40,7 +40,7 @@ class Model(object):
         all_pls = {}
         queue = []
 
-        for pl in self.output_pls:
+        for pl in self.input_y_pls:
             # backwards from output layer and add into a queue
             id = unique_id('placeholder')
             pl.set_id(id)
@@ -84,7 +84,7 @@ class Model(object):
         waiting_pl_ids = set(self.all_pls.keys())
 
         # we start to assign value from input layer
-        for i, input_pl in enumerate(self.input_pls):
+        for i, input_pl in enumerate(self.input_X_pls):
             input_pl.set_tensor(input_tensors[i])
             ready_pl_ids.add(input_pl.id)
             waiting_pl_ids.remove(input_pl.id)
@@ -142,5 +142,39 @@ class Model(object):
     def fit(self, input_X, input_y, n_epochs, batch_size=None):
         """training model
         """
+        # check data type and concvert to Tensor data type
+        input_X = input_X if isinstance(input_X, list) else [input_X]
+        input_y = input_y if isinstance(input_y, list) else [input_y]
         
-        
+        if any(map(lambda x: not isinstance(x, np.ndarray), input_X)):
+            raise TypeError('Input X placeholder is not Numpy.Array type!')
+            
+        if any(map(lambda x: not isinstance(x, np.ndarray), input_y)):
+            raise TypeError('Input y placeholder is not Numpy.Array type!')
+            
+        # init parameters about layer
+        errors = []
+        accs = []
+        for i in n_epochs:
+            for batch_data in get_batch_data(input_X + input_y):
+                input_X_batch = list(map(lambda x: Tensor(x, auto_grad=True), batch_data[:len(input_X)]))
+                input_y_batch = list(map(lambda x: Tensor(x, auto_grad=True), batch_data[len(input_X):]))
+                
+                # 
+                self.forward(input_X_batch)
+                
+                assert len(self.input_y_pls) == 1
+                assert len(input_X_batch) == 1
+                
+                # back propagate gradient from loss function
+                error, acc = self.loss.backward(input_y_batch[0], self.input_y[0].tensor)
+                
+                errors.append(error)
+                accs.append(acc)
+                
+                self.optimizer.update_layers()
+                
+                print('epochs[{}], error[{}], acc[{}%]                '.format(i, float(error), acc*100), \
+                      end='', flush=True)
+        return errors, accs
+          
