@@ -14,6 +14,7 @@ A lightweight deep learning framework using Python language, which enables creat
 
 - `Model`  
   - computational graph 
+  - Sequential model
 - `Layers`
   - Add
   - Activation
