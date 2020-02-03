@@ -35,28 +35,27 @@ A lightweight deep learning framework using Python language, which enables creat
 
 ### Sequential model example
 
-`  
-from sklearn import datasets
-from util import *
-from layer import *
-from sequential import *
-from model import *
-import numpy as np
+    from sklearn import datasets
+    from util import *
+    from layer import *
+    from sequential import *
+    from model import *
+    import numpy as np
 
-data = datasets.load_digits()
-X = data.data
-y = data.target
-Y = to_categorical(y).astype('int')
+    data = datasets.load_digits()
+    X = data.data
+    y = data.target
+    Y = to_categorical(y).astype('int')
 
-model = Sequential(SGD(learning_rate=0.01), SoftmaxCrossEntropy())
-model.add(Dense(512, X.shape[-1]))
-model.add(Activation('relu'))
-model.add(Dense(512))
-model.add(Activation('relu'))
-model.add(Dense(512))
-model.add(Activation('relu'))
-model.add(Dense(10))
+    model = Sequential(SGD(learning_rate=0.01), SoftmaxCrossEntropy())
+    model.add(Dense(512, X.shape[-1]))
+    model.add(Activation('relu'))
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dense(10))
 
-errs, accs = model.fit(X, Y, 10)
-plots(errs, accs)
-` 
+    errs, accs = model.fit(X, Y, 10)
+    plots(errs, accs)
+    
