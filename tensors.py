@@ -7,7 +7,7 @@ from .utils.math_ops_utils import *
 import numpy as np
 
 class Tensor(object):
-    def __init__(self, data, parents=None, op=None, auto_grad=None, id=None):
+    def __init__(self, data, parents=None, op=None, auto_grad=False, id=None):
         """Initialize tensor
         Args:
             data: ndarray, input tensor data
