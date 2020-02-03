@@ -93,7 +93,11 @@ class Sequential(object):
                 errs.append(err)
         return accs, errs
 
-
+    def predict(self, x):
+        """
+        """
+        x = Tensor(x, auto_grad=True)
+        return self.forward(x).data
 
 
 
