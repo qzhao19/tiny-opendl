@@ -74,7 +74,24 @@ class Sequential(object):
 
         return output_tensors
 
-    def fit(self, )
+    def fit(self, input_tensors, output_tensors, n_epochs, , batch_size=64):
+        """
+        """
+        self.build_network()
+        accs = []
+        errs = []
+
+        for i in range(n_epochs):
+            for x, y in get_batch_data([input_tensors, output_tensors], batch_size):
+                x = Tensor(x, auto_grad=True)
+                y = Tensor(y, auto_grad=True)
+                y_pred = self.forward(x)
+                err, acc = self.loss.backward(y, y_pred)
+                self.optimizer.update_layers()
+                print("Epoch[{}], error[{}], accuracy[{}%]              ".format(i, float(err), acc*100), end='', flush=True)
+                accs.append(acc)
+                errs.append(err)
+        return accs, errs
 
 
 
