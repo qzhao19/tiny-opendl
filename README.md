@@ -35,7 +35,7 @@ A lightweight deep learning framework using Python language, which enables creat
 
 ### Sequential model example
 
-`
+```python
 from sklearn import datasets
 from util import *
 from layer import *
@@ -59,4 +59,4 @@ model.add(Dense(10))
 
 errs, accs = model.fit(X, Y, 10)
 plots(errs, accs)
-`
+```
